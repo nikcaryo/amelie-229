@@ -1,0 +1,128 @@
+#! /bin/zsh -x
+
+cp /cluster/prj/medical_genomics/kb/genes/local_build/grch37/latest/gene.entrez.map .
+cp /cluster/prj/medical_genomics/kb/annovar/latest/hg19/hg19_ensGene.txt .
+cat /cluster/gbdb-bej/hg19/*.blacklist | grep -v -f /dev/stdin hg19_ensGene.txt | cut -f13 | sort -u > good_ensembl_ids.tsv
+sort -k1,1 gene.entrez.map |  join -t $'\t' -1 1 -2 1 - good_ensembl_ids.tsv | sort -k2,2 > gene.good_ensembl.entrez.map
+
+# unused; old gene names; now we get them from HGNC
+# wget 'ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/locus_groups/protein-coding_gene.txt' -O "protein-coding_gene.txt"
+# cat protein-coding_gene.txt | 
+#   tail -n+2 | 
+#   awk -F'\t' '{OFS="\t"; print $2, $3}' |
+#   sed '/(.*)$/d' > gene_names.tsv
+
+rm protein-coding_gene.txt
+
+cat ensembl_refseq.txt ensembl_symbols_canonical.txt ensembl_syns.txt ensembl_direct.txt | 
+  sort | uniq > ensembl_map.tsv
+
+# selected Ensembl Gene ID, HGNC symbol, HGNC ID, no filters, from GRCh37
+# wget -O ensembl_id_hgnc_symbol_hgnc_id_biomart.tsv 'http://uswest.ensembl.org/biomart/martview/218dbce5b02f22ff36281ae2c2821c15'
+
+wget -O hgnc_id_hgnc_symbol_hgnc_approved_name_hgnc_synonyms.txt 'http://www.genenames.org/cgi-bin/download?col=gd_hgnc_id&col=gd_app_sym&col=gd_app_name&col=gd_aliases&status=Approved&status_opt=2&where=&order_by=gd_hgnc_id&format=text&limit=&hgnc_dbtag=on&submit=submit'
+
+tail -n+2 hgnc_id_hgnc_symbol_hgnc_approved_name_hgnc_synonyms.txt |
+  awk -F'\t' '{OFS="\t"; print $2, $3}' > gene_names.tsv
+
+./join_on_hgnc.py ensembl_id_hgnc_symbol_hgnc_id_biomart.tsv hgnc_id_hgnc_symbol_hgnc_approved_name_hgnc_synonyms.txt | sort | uniq > ensembl_genes_with_names.tsv
+
+cat ensembl_genes_with_names.tsv | while read j
+do
+ensembl_id=`echo $j | cut -f 1`
+canonical_name=`echo $j | cut -f 2`
+name=`echo $j | cut -f 3`
+new_name=`echo $name | sed 's/\([a-zA-Z][a-zA-Z]*\)\([0-9][0-9]*\)$/\1-\2/'`
+if [ "$name" != "$new_name" ]
+then
+echo "$ensembl_id\t${canonical_name}\t$new_name\tMANUAL_SYNONYM"
+fi
+done > manual_synonyms.tsv
+
+cat manual_synonyms.tsv >> ensembl_genes_with_names.tsv
+
+wget 'ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2pubmed.gz'
+gunzip gene2pubmed.gz
+
+wget 'http://www.uniprot.org/uniprot/?query=organism:9606&format=xml&compress=yes&columns=id,protein%20names' -O 'uniprot-organism9606.xml.gz'
+
+./parse_uniprot_xml.py uniprot-organism9606.xml |
+    grep -vi 'uncharacterized' | 
+    grep -vi 'fragment' | 
+    grep -vi 'putative' | 
+    grep -vP '\tEC '> uniprot_protein_names.txt
+
+join -1 1 -2 2 -t $'\t' <(sort -k1,1 uniprot_protein_names.txt) <(sort -k2,2 ensembl_to_uniprot_biomart.txt) |
+  awk -F '\t' '{print $4"\t"$2"\t"$3}' |
+  sed 's/ *$//g' | sort | uniq |
+  awk -F '\t' '{if (length($2) >= 4) print $0}' |
+  sort -k1,1 | join -t $'\t' -1 1 -2 1 - <(cat ensembl_genes_with_names.tsv | grep HGNC_SYMBOL | sort -k1,1) |
+  awk -F '\t' '{print $1"\t"$4"\t"$2"\t"$3}' |
+  sort | uniq > ensembl_uniprot_protein_names.txt
+
+# ./find_cut_gene_names.py ensembl_uniprot_protein_names.txt > ensembl_uniprot_protein_names2.txt
+# mv ensembl_uniprot_protein_names2.txt ensembl_uniprot_protein_names.txt
+# sort -u ensembl_uniprot_protein_names.txt -o ensembl_uniprot_protein_names.txt
+
+cat ensembl_uniprot_protein_names.txt >> ensembl_genes_with_names.tsv
+
+wget 'ftp://ftp.ncbi.nlm.nih.gov/pub/lu/PubTator/gene2pubtator.gz'
+gunzip gene2pubtator.gz
+
+cat ensembl_genes_with_names.tsv | grep HGNC_SYNONYM | cut -f 3 | grep -v '-' | grep -P '[a-z]+' | awk '{print $1"\tHGNC_SYNONYM"}'> bad_synonyms.txt
+cat ensembl_genes_with_names.tsv | grep -vf bad_synonyms.txt > ensembl_genes_with_names.tsv2
+mv ensembl_genes_with_names.tsv2 ensembl_genes_with_names.tsv
+
+# ../../src/recreate_gene_db.py
+
+tail -n+2 gene2pubtator | sort -k2,2 > gene2pubtator.sort_entrez
+join -1 2 -2 2 gene2pubtator.sort_entrez -t $'\t' <(cat gene.good_ensembl.entrez.map | sort -k2,2) | sort -t $'\t' -k5,5 > gene2pubtator.sort_ensembl
+join -1 5 -2 1 -t $'\t' gene2pubtator.sort_ensembl \
+  <(cut -f 1,2 ensembl_genes_with_names.tsv | sort -k1,1 | uniq) | 
+  cut -f 1,3,4,6 | 
+  ./uncollapse.py '|' 3 | 
+  awk -F '\t' '{print $2"\t"$1"\t"$4"\t"$3"\tPROTEIN_GENE2PUBTATOR"}' | 
+  sort -k1,1 | uniq > ensembl_gene2pubtator.tsv
+
+../../src/recreate_eid_to_name.py
+../../src/recreate_gene_db.py
+
+wget 'http://genic-intolerance.org/data/RVIS_Unpublished_ExAC_May2015.txt'
+
+cut -f 5,13 RVIS_Unpublished_ExAC_May2015.txt | tail -n+2 > gene_name_to_rvis.tsv
+
+# join -1 1 -2 2 -t $'\t' \
+#   <(cat ../../{my_patients,dbgap_patients,dbgap_3rd_set}/solutions.txt | cut -f 2 | sort -u) \
+#   <(cat ensembl_id_hgnc_symbol_hgnc_id_biomart.tsv | cut -f 1,2 | sort -u | 
+#     awk '$2 != ""' | sort -t $'\t' -k2,2) | 
+#   cut -f 2 | sort > forbidden_training_genes.tsv
+
+cut -f 2 ../../ega_100/solutions.txt | 
+  sort -u | join -t $'\t' -1 1 -2 2 - \
+    <(cat ensembl_id_hgnc_symbol_hgnc_id_biomart.tsv | 
+      sort -t $'\t' -k2,2) |
+  cut -f 2 | 
+  sort > forbidden_training_genes.tsv
+
+cat right_genes_to_pmids_Xall_Yall.txt | while read i
+do
+  eid=`echo $i | cut -f 1`
+  echo $i | cut -f 2 | tr ' ' '\n' | cut -d ':' -f 1 | sort -u | awk -v eid=$eid '{print $1"\t"eid}'
+done | sort -u > pmid_to_right_gene.txt
+
+cat ../../../text/all_right_genes_pubmunch_X2011/parts/part-*.tsv | awk '$3 >= .1' | sort -t $'\t' -k1,1 > pmid_to_right_gene_proba_X2011_Yall.tsv
+
+# cat pmid_to_right_gene_proba_X2011_Yall.tsv | awk '$3 >= 0.5 {print $1"\t"$2}' | sort -u |
+#   sort -t $'\t' -k1,1 | join -t $'\t' -1 1 -2 1 - \
+#   <(cut -f 1,2 ../hpo/pmid_to_pheno.tsv | sort -u | sort -k1,1) |
+#   cut -f 2,3 | sort -u > gene_to_hpo_X2011_Yall.txt
+./src/gene_to_hpo.py 2011 all ../text pubmunch_right_genes_X2011 onto/hpo/pmid_to_pheno.tsv > onto/genes/gene_to_hpo_X2011_Yall.txt
+
+../../src/extracted_genes_to_tsv.py ../../../text pubmunch_genes > pubmunch_extracted_genes.tsv
+
+wget 'ftp://ftp.ncbi.nih.gov/gene/DATA/gene2ensembl.gz'
+gunzip gene2ensembl.gz
+cat gene2ensembl | awk -F $'\t' '$1 == 9606' | cut -f 3,4,6 | awk -F $'\t' '$2 ~ /^NM_/' > ensembl_refseq_refprot.tsv
+
+join -t $'\t' -1 2 -2 1 <(tail -n+2 ensembl_id_hgnc_symbol_hgnc_id_biomart.tsv | cut -f 1,2 | sort -t $'\t' -k2,2) <(cat gene_name_to_rvis.tsv | sort -t $'\t' -k1,1) | cut -f 2- | sort -u > ensg_to_rvis.tsv
+
