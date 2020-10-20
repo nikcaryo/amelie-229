@@ -1,0 +1,7 @@
+*.owl
+*.obo
+*.txt
+*.tsv
+mesh/
+snomed/
+umls/
