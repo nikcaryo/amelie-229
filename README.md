@@ -2,6 +2,7 @@
 Final project for Stanford CS229
 
 ## Installation
+- `cd` into `amelie-229-main`
 - Run `conda env create -f environment.yml`
 - Activate the conda environment with `conda activate amelie`
 - `cd` to `amelie/` and run `python -m pip install -e .`
