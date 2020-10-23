@@ -6,6 +6,7 @@ Final project for Stanford CS229
 - Run `conda env create -f environment.yml`
 - Activate the conda environment with `conda activate amelie`
 - `cd` to `amelie/` and run `python -m pip install -e .`
+- Make sure you have `wget` command from Homebrew (if you use a Mac) 
 - `cd` to `amelie/pheno_data` and run `./BUILD`
 - Find the path to your conda environment (`should be something like /cluster/u/nikcaryo/software/miniconda/envs/amelie/`)
 - Open the python terminal with `python -i`
