@@ -1,5 +1,5 @@
 
-/amelie/amelie_process_dir/*.pkl
+amelie/amelie_process_dir/*.pkl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
