@@ -1,3 +1,4 @@
+import sys
 import sklearn.feature_extraction.text
 import sklearn.linear_model
 import sklearn.pipeline
@@ -52,9 +53,14 @@ def create_model(articles, labels, cross_val=False, l1=False):
 if __name__ == "__main__":
     out_dir = "amelie_out_dir"
     process_dir = "amelie_process_dir"
-
-    articles, labels = load_training_data(out_dir, process_dir, "inheritance_modes", num=10)
-    print(labels)
+    mode = str(sys.argv[1])
+    
+    articles, labels = load_training_data(out_dir, process_dir, mode)
+    
+    if len(sys.argv) == 3:
+        num = int(sys.argv[2])
+        articles = articles[:num]
+        labels = labels[:num]
     
     create_model(articles, labels, cross_val=True)
 
