@@ -99,8 +99,8 @@ def load_training_data(out_dir, process_dir, field_name, replace_phenos_with_not
     articles, labels = shuffle_articles_labels(articles, labels)
     
     
-    articles = articles
-    labels = labels
+    articles = articles[:100]
+    labels = labels[:100]
 
     print('Have ', len(articles), flush=True)
     counters = defaultdict(int)
