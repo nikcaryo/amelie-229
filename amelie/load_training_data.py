@@ -60,7 +60,7 @@ def shuffle_articles_labels(articles, labels):
     random.shuffle(zipped_articles_labels)
     return [x for x in zip(*zipped_articles_labels)]
 
-def load_training_data(out_dir, process_dir, field_name, replace_phenos_with_nothing=False):
+def load_training_data(out_dir, process_dir, field_name, replace_phenos_with_nothing=False, limit=None):
     with open(out_dir + '/dataset_meta.json') as file:
         dataset_info = json.load(file)
 
@@ -98,9 +98,9 @@ def load_training_data(out_dir, process_dir, field_name, replace_phenos_with_not
 
     articles, labels = shuffle_articles_labels(articles, labels)
     
-    
-    articles = articles[:100]
-    labels = labels[:100]
+    if limit:
+        articles = articles[:limit]
+        labels = labels[:limit]
 
     print('Have ', len(articles), flush=True)
     counters = defaultdict(int)

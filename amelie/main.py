@@ -31,13 +31,28 @@ def five_fold_cross_val(pipeline, articles, labels):
     print("Scores: ")
     print(scores)
 
-def create_model(articles, labels, cross_val=False, l1=False):
-    if l1:
-        clf = sklearn.linear_model.LogisticRegression(penalty='l1', max_iter=1000)
-    else:
-        clf = sklearn.linear_model.LogisticRegression(penalty='l2', max_iter=1000)
+def create_model(articles, labels, model, feat, 
+                 cross_val=False, 
+                 penalty="l2", 
+                 max_iter=1000):
+    
+    # TODO: more shit
+    featurizers = {
+        "tfidf": sklearn.feature_extraction.text.TfidfVectorizer(min_df=0.01, max_df=0.95)
+        
+    }
+    
+    # TODO: more shit
+    classifiers = {
+        "logreg": sklearn.linear_model.LogisticRegression(penalty=penalty, max_iter=max_iter),
+        "svm": 12
+    }
+    
+    clf = classifiers[model]
+    featurizer = featurizers[feat]
+    
     pipeline = sklearn.pipeline.Pipeline([
-        ('Featurizer', sklearn.feature_extraction.text.TfidfVectorizer(min_df=0.01, max_df=0.95)),
+        ('Featurizer', featurizer),
         ('Classifier', clf)
     ])
 
@@ -54,18 +69,15 @@ if __name__ == "__main__":
     out_dir = "amelie_out_dir"
     process_dir = "amelie_process_dir"
     
+    
     # inheritance_modes or variant_types
-#     mode = str(sys.argv[1])
+    # mode = str(sys.argv[1])
     for mode in ["inheritance_modes", "variant_types"]:
-        articles, labels = load_training_data(out_dir, process_dir, mode)
-
-        if len(sys.argv) == 3:
-            num = int(sys.argv[2])
-            articles = articles[:num]
-            labels = labels[:num]
-
-        model = create_model(articles, labels, cross_val=True)
+        articles, labels = load_training_data(out_dir, process_dir, mode, limit=100)
+        model = create_model(articles, labels, "logreg", "tfidf", cross_val=True)
         predictions = model.predict(articles)
+        
+        # should save this into a text file
         print(classification_report(predictions, labels))
 
 
