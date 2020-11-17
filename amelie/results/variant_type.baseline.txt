@@ -1,0 +1,27 @@
+dataloaders.hpo
+<function parent_package_name at 0x7f83693ef7a0>
+text_classification
+Total positives:  60160
+Good positives:  17718
+/cluster/u/nikcaryo/software/miniconda/envs/amelie/lib/python3.7/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Pool created
+Processed  0  out of  17718
+Processed  10000  out of  17718
+Pool created
+Processed  0  out of  3264
+Have  20555
+Counts per label: defaultdict(<class 'int'>, {'not_destructive': 11930, 'destructive': 5447, 'gwas': 3178})
+Done converting
+[Parallel(n_jobs=1)]: Using backend SequentialBackend with 1 concurrent workers.
+/cluster/u/nikcaryo/software/miniconda/envs/amelie/lib/python3.7/site-packages/sklearn/linear_model/logistic.py:432: FutureWarning: Default solver will be changed to 'lbfgs' in 0.22. Specify a solver to silence this warning.
+  FutureWarning)
+/cluster/u/nikcaryo/software/miniconda/envs/amelie/lib/python3.7/site-packages/sklearn/linear_model/logistic.py:459: FutureWarning: Default multi_class will be changed to 'auto' in 0.22. Specify the multi_class option to silence this warning.
+  "this warning.", FutureWarning)
+[Parallel(n_jobs=1)]: Done   5 out of   5 | elapsed: 22.1min finished
+Pipeline created
+Five-fold cross validation
+Scoring: micro
+Scores: 
+{'fit_time': array([85.40003157, 82.30645156, 83.89562774, 84.11322117, 82.09992242]), 'score_time': array([35.73992038, 35.69665122, 37.92609191, 36.4889555 , 35.36837387]), 'test_precision': array([0.86040856, 0.86162451, 0.8603746 , 0.86934307, 0.86253041]), 'train_precision': array([0.89557867, 0.89594356, 0.89637558, 0.8937671 , 0.89401034]), 'test_recall': array([0.86040856, 0.86162451, 0.8603746 , 0.86934307, 0.86253041]), 'train_recall': array([0.89557867, 0.89594356, 0.89637558, 0.8937671 , 0.89401034])}
+Fitting classifier
