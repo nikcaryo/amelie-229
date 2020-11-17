@@ -45,7 +45,7 @@ def create_model(articles, labels, model, feat,
     # TODO: more shit
     classifiers = {
         "logreg": sklearn.linear_model.LogisticRegression(penalty=penalty, max_iter=max_iter),
-        "svm": 12
+        "svm": sklearn.svm.LinearSVC()
     }
     
     clf = classifiers[model]
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     # mode = str(sys.argv[1])
     for mode in ["inheritance_modes", "variant_types"]:
         articles, labels = load_training_data(out_dir, process_dir, mode, limit=100)
-        model = create_model(articles, labels, "logreg", "tfidf", cross_val=True)
+        model = create_model(articles, labels, "svm", "tfidf", cross_val=True)
         predictions = model.predict(articles)
         
         # should save this into a text file
