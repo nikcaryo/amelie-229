@@ -2,11 +2,13 @@ import sys
 import sklearn.feature_extraction.text
 import sklearn.linear_model
 import sklearn.pipeline
+from sklearn import tree
 from sklearn.model_selection import cross_validate
 from sklearn.metrics.scorer import make_scorer
 from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import classification_report
 from load_training_data import load_training_data
+
 
 
 def five_fold_cross_val(pipeline, articles, labels):
@@ -39,13 +41,14 @@ def create_model(articles, labels, model, feat,
     # TODO: more shit
     featurizers = {
         "tfidf": sklearn.feature_extraction.text.TfidfVectorizer(min_df=0.01, max_df=0.95)
-        
+         
     }
     
     # TODO: more shit
     classifiers = {
         "logreg": sklearn.linear_model.LogisticRegression(penalty=penalty, max_iter=max_iter),
-        "svm": sklearn.svm.LinearSVC()
+        "svm": sklearn.svm.LinearSVC(),
+        "tree": tree.DecisionTreeClassifier()
     }
     
     clf = classifiers[model]
@@ -73,12 +76,12 @@ if __name__ == "__main__":
     # inheritance_modes or variant_types
     # mode = str(sys.argv[1])
     for mode in ["inheritance_modes", "variant_types"]:
-        articles, labels = load_training_data(out_dir, process_dir, mode, limit=100)
-        model = create_model(articles, labels, "svm", "tfidf", cross_val=True)
+        articles, labels = load_training_data(out_dir, process_dir, mode, limit=1000)
+        model = create_model(articles, labels, "tree", "tfidf", cross_val=True)
         predictions = model.predict(articles)
         
         # should save this into a text file
-        print(classification_report(predictions, labels))
+        print(classification_report(labels, predictions))
 
 
 
