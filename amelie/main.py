@@ -5,7 +5,7 @@ import sklearn.pipeline
 from sklearn.model_selection import cross_validate
 from sklearn.metrics.scorer import make_scorer
 from sklearn.metrics import precision_score, recall_score
-
+from sklearn.metrics import classification_report
 from load_training_data import load_training_data
 
 
@@ -53,17 +53,20 @@ def create_model(articles, labels, cross_val=False, l1=False):
 if __name__ == "__main__":
     out_dir = "amelie_out_dir"
     process_dir = "amelie_process_dir"
-    mode = str(sys.argv[1])
     
-    articles, labels = load_training_data(out_dir, process_dir, mode)
-    
-    if len(sys.argv) == 3:
-        num = int(sys.argv[2])
-        articles = articles[:num]
-        labels = labels[:num]
-    
-    create_model(articles, labels, cross_val=True)
+    # inheritance_modes or variant_types
+#     mode = str(sys.argv[1])
+    for mode in ["inheritance_modes", "variant_types"]:
+        articles, labels = load_training_data(out_dir, process_dir, mode)
 
+        if len(sys.argv) == 3:
+            num = int(sys.argv[2])
+            articles = articles[:num]
+            labels = labels[:num]
+
+        model = create_model(articles, labels, cross_val=True)
+        predictions = model.predict(articles)
+        print(classification_report(predictions, labels))
 
 
 
