@@ -8,6 +8,7 @@ from sklearn.metrics.scorer import make_scorer
 from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import classification_report
 from load_training_data import load_training_data
+from sklearn.model_selection import train_test_split
 
 
 
@@ -75,23 +76,20 @@ if __name__ == "__main__":
     out_dir = "amelie_out_dir"
     process_dir = "amelie_process_dir"
     
-    
-    # inheritance_modes or variant_types
-    # mode = str(sys.argv[1])
     for mode in ["inheritance_modes", "variant_types"]:
-        
-        articles, labels = load_training_data(out_dir, process_dir, mode, new=False)
-#         articles, labels = load_training_data(out_dir, process_dir, mode, new=True)
-#         for clf in ["logreg"]:
-#             print(f"MODE: {mode}")
-#             print(f"CLF: {clf}")
+        articles, labels = load_training_data(out_dir, process_dir, mode, new=True, limit=1000)
+        article_train, article_test, label_train, label_test = train_test_split(articles, labels, test_size=0.20, random_state=42)
+
+        for clf in ["svm"]:
+            print(f"MODE: {mode}")
+            print(f"CLF: {clf}")
       
-#             model = create_model(articles, labels, "tree", "tfidf", cross_val=True)
-#             predictions = model.predict(articles)
+            model = create_model(article_train, label_train, "tree", "tfidf", cross_val=True)
+            predictions = model.predict(article_test)
         
-#             # should save this into a text file
-#             print(classification_report(labels, predictions))
-#             print("=========================")
+            # should save this into a text file
+            print(classification_report(label_test, predictions))
+            print("=========================")
 
 
 
