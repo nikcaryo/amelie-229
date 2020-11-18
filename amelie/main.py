@@ -131,6 +131,7 @@ if __name__ == "__main__":
     for mode in ["inheritance_modes", "variant_types"]:
         # COUNT += 1
         articles, labels = load_training_data(out_dir, process_dir, mode, limit=100)
+        article_train, article_test, label_train, label_test = train_test_split(articles, labels, test_size=0.20, random_state=42)
 
         classifiers = {
             #newer logreg args: solver='lbfgs', multi_class='auto'
@@ -151,15 +152,17 @@ if __name__ == "__main__":
                 ]
             for feat in featurizers:
                 print("!!!!!!!!!!!!!!!!!!! Creating model for mode {}, clf {}, featurizer tf-idf + {}:".format(mode, clf, feat))
-                model = create_model(articles, labels, clf, feat, cross_val=True)
-                predictions = model.predict(articles)
-                filename = xyz
-                pickle.dump(model,open(filename,"wb"))
+                model = create_model(article_train, label_train, clf, feat, cross_val=True)
+                predictions = model.predict(article_test)
+                pkl_filename = "results/{}-{}-{}-model.pkl".format(mode, clf, feat)
+                pickle.dump(model,open(pkl_filename,"wb"))
                 #model = pickle.load(model)
         
         # should save this into a text file
                 print("For mode {}, clf {}, featurizer tf-idf + {}:".format(mode, clf, feat))
-                print(classification_report(predictions, labels))
+                # print(classification_report(predictions, labels))
+                print(classification_report(label_test, predictions))
+                print("=========================================")
 
 
 
