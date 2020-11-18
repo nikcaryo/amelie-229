@@ -60,11 +60,14 @@ def shuffle_articles_labels(articles, labels):
     random.shuffle(zipped_articles_labels)
     return [x for x in zip(*zipped_articles_labels)]
 
-def load_training_data(out_dir, process_dir, field_name, replace_phenos_with_nothing=False, limit=None):
-    with open(out_dir + '/dataset_meta.json') as file:
+def load_training_data(out_dir, process_dir, field_name, replace_phenos_with_nothing=False, limit=None, new=False):
+    
+    
+    new_flag = "" if not new else "_new"
+    with open(out_dir + f'/dataset_meta{new_flag}.json') as file:
         dataset_info = json.load(file)
 
-    with open(out_dir + '/omim.json') as file:
+    with open(out_dir + f'/omim{new_flag}.json') as file:
         omim = json.load(file)
     positives = set(dataset_info['positive_pmids'])
     print('Total positives: ', len(positives), flush=True)

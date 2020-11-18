@@ -68,6 +68,9 @@ def create_model(articles, labels, model, feat,
 
     return pipeline
 
+
+    
+
 if __name__ == "__main__":
     out_dir = "amelie_out_dir"
     process_dir = "amelie_process_dir"
@@ -76,13 +79,19 @@ if __name__ == "__main__":
     # inheritance_modes or variant_types
     # mode = str(sys.argv[1])
     for mode in ["inheritance_modes", "variant_types"]:
-        articles, labels = load_training_data(out_dir, process_dir, mode, limit=1000)
-        model = create_model(articles, labels, "tree", "tfidf", cross_val=True)
-        predictions = model.predict(articles)
         
-        # should save this into a text file
-        print(classification_report(labels, predictions))
-
+        articles, labels = load_training_data(out_dir, process_dir, mode, new=False)
+#         articles, labels = load_training_data(out_dir, process_dir, mode, new=True)
+#         for clf in ["logreg"]:
+#             print(f"MODE: {mode}")
+#             print(f"CLF: {clf}")
+      
+#             model = create_model(articles, labels, "tree", "tfidf", cross_val=True)
+#             predictions = model.predict(articles)
+        
+#             # should save this into a text file
+#             print(classification_report(labels, predictions))
+#             print("=========================")
 
 
 
