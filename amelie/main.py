@@ -49,7 +49,8 @@ def create_model(articles, labels, model, feat,
     classifiers = {
         "logreg": sklearn.linear_model.LogisticRegression(penalty=penalty, max_iter=max_iter),
         "svm": sklearn.svm.LinearSVC(),
-        "tree": tree.DecisionTreeClassifier()
+        "tree": tree.DecisionTreeClassifier(),
+        "naivebayes": sklearn.naive_bayes.MultinomialNB()
     }
     
     clf = classifiers[model]
